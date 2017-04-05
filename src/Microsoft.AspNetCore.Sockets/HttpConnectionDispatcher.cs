@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.Sockets
                     {
                         _logger.LogDebug("Establishing new connection: {connectionId} on {requestId}", state.Connection.ConnectionId, state.RequestId);
 
-                        state.Connection.Metadata["transport"] = TransportType.LongPolling;
+                        state.Connection.Metadata[ConnectionMetadataNames.Transport] = TransportType.LongPolling;
 
                         state.ApplicationTask = ExecuteApplication(endpoint, state.Connection);
                     }
@@ -231,17 +231,12 @@ namespace Microsoft.AspNetCore.Sockets
 
         private ConnectionState CreateConnection(HttpContext context)
         {
-            var format =
-                string.Equals(context.Request.Query["format"], "binary", StringComparison.OrdinalIgnoreCase)
-                    ? MessageType.Binary
-                    : MessageType.Text;
-
             var state = _manager.CreateConnection();
             state.Connection.User = context.User;
+            state.Connection.Metadata[ConnectionMetadataNames.HttpContext] = context;
 
-            // TODO: this is wrong. + how does the user add their own metadata based on HttpContext
-            var formatType = (string)context.Request.Query["formatType"];
-            state.Connection.Metadata["formatType"] = string.IsNullOrEmpty(formatType) ? "json" : formatType;
+            var format = (string)context.Request.Query[ConnectionMetadataNames.Format];
+            state.Connection.Metadata[ConnectionMetadataNames.Format] = string.IsNullOrEmpty(format) ? "json" : format;
             return state;
         }
 
@@ -358,7 +353,7 @@ namespace Microsoft.AspNetCore.Sockets
             var messages = ParseSendBatch(ref reader, messageFormat);
 
             // REVIEW: Do we want to return a specific status code here if the connection has ended?
-            _logger.LogDebug("Received batch of {0} message(s) in '/send'", messages.Count);
+            _logger.LogDebug("Received batch of {count} message(s) in '/send'", messages.Count);
             foreach (var message in messages)
             {
                 while (!state.Application.Output.TryWrite(message))
@@ -382,11 +377,11 @@ namespace Microsoft.AspNetCore.Sockets
 
             connectionState.Connection.User = context.User;
 
-            var transport = connectionState.Connection.Metadata.Get<TransportType?>("transport");
+            var transport = connectionState.Connection.Metadata.Get<TransportType?>(ConnectionMetadataNames.Transport);
 
             if (transport == null)
             {
-                connectionState.Connection.Metadata["transport"] = transportType;
+                connectionState.Connection.Metadata[ConnectionMetadataNames.Transport] = transportType;
             }
             else if (transport != transportType)
             {
