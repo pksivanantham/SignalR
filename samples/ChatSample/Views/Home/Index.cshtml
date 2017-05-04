@@ -28,18 +28,22 @@ connection.onClosed = e => {
     }
 };
 
-connection.on('SetUsersOnline', function (usersOnline) {
+connection.on('SetUsersOnline', usersOnline => {
     usersOnline.forEach(user => addUserOnline(user));
 });
 
-connection.on('UserJoined', user => {
-    appendLine('User ' + user.Name + ' joined the chat');
-    addUserOnline(user);
+connection.on('UsersJoined', users => {
+    users.forEach(user => {
+        appendLine('User ' + user.Name + ' joined the chat');
+        addUserOnline(user);
+    });
 });
 
-connection.on('UserLeft', user => {
-    appendLine('User ' + user.Name + ' left the chat');
-    document.getElementById(user.ConnectionId).outerHTML = '';
+connection.on('UsersLeft', users => {
+    users.forEach(user => {
+        appendLine('User ' + user.Name + ' left the chat');
+        document.getElementById(user.ConnectionId).outerHTML = '';
+    });
 });
 
 connection.on('Send', (userName, message) => {

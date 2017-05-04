@@ -18,22 +18,22 @@ namespace ChatSample
     {
         private IUserTracker<HubWithPresence<TClient>> _userTracker;
 
-        public HubWithPresence(IUserTracker<HubWithPresence<TClient>> userTracker)
-        {
-            _userTracker = userTracker;
-        }
-
         public Task<IEnumerable<UserDetails>> GetUsersOnline()
         {
             return _userTracker.UsersOnline();
         }
 
-        public virtual Task OnUserJoined(UserDetails user)
+        public HubWithPresence(IUserTracker<HubWithPresence<TClient>> userTracker)
+        {
+            _userTracker = userTracker;
+        }
+
+        public virtual Task OnUsersJoined(UserDetails[] user)
         {
             return Task.CompletedTask;
         }
 
-        public virtual Task OnUserLeft(UserDetails user)
+        public virtual Task OnUsersLeft(UserDetails[] user)
         {
             return Task.CompletedTask;
         }

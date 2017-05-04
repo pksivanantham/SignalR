@@ -47,8 +47,8 @@ namespace ChatSample
             ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             _userTracker = userTracker;
-            _userTracker.UserJoined += OnUserJoined;
-            _userTracker.UserLeft += OnUserLeft;
+            _userTracker.UsersJoined += OnUsersJoined;
+            _userTracker.UsersLeft += OnUsersLeft;
 
             _serviceScopeFactory = serviceScopeFactory;
             _serviceProvider = serviceProvider;
@@ -70,14 +70,14 @@ namespace ChatSample
             await _userTracker.RemoveUser(connection);
         }
 
-        private async void OnUserJoined(UserDetails userDetails)
+        private async void OnUsersJoined(UserDetails[] users)
         {
-            await Notify(hub => hub.OnUserJoined(userDetails));
+            await Notify(hub => hub.OnUsersJoined(users));
         }
 
-        private async void OnUserLeft(UserDetails userDetails)
+        private async void OnUsersLeft(UserDetails[] users)
         {
-            await Notify(hub => hub.OnUserLeft(userDetails));
+            await Notify(hub => hub.OnUsersLeft(users));
         }
 
         private async Task Notify(Func<THub, Task> invocation)
@@ -117,8 +117,8 @@ namespace ChatSample
 
         public void Dispose()
         {
-            _userTracker.UserJoined -= OnUserJoined;
-            _userTracker.UserLeft -= OnUserLeft;
+            _userTracker.UsersJoined -= OnUsersJoined;
+            _userTracker.UsersLeft -= OnUsersLeft;
         }
 
         public override Task InvokeAllAsync(string methodName, object[] args)

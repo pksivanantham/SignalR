@@ -24,22 +24,18 @@ namespace ChatSample.Hubs
             }
 
             await Clients.Client(Context.ConnectionId).InvokeAsync("SetUsersOnline", await GetUsersOnline());
+
             await base.OnConnectedAsync();
         }
 
-        public override Task OnUserJoined(UserDetails user)
+        public override Task OnUsersJoined(UserDetails[] users)
         {
-            if (user.ConnectionId != Context.ConnectionId)
-            {
-                return Clients.Client(Context.ConnectionId).InvokeAsync("UserJoined", user);
-            }
-
-            return Task.CompletedTask;
+            return Clients.Client(Context.ConnectionId).InvokeAsync("UsersJoined", new[] { users });
         }
 
-        public override Task OnUserLeft(UserDetails user)
+        public override Task OnUsersLeft(UserDetails[] users)
         {
-            return Clients.Client(Context.ConnectionId).InvokeAsync("UserLeft", user);
+            return Clients.Client(Context.ConnectionId).InvokeAsync("UsersLeft", new[] { users });
         }
 
         public async Task Send(string message)
